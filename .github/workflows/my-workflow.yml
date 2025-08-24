@@ -29,4 +29,45 @@ jobs:
 
       - name: simulate deployement
         run: echo "Deploying version $(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)..."
+
+      name: Java CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs: 
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with: 
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Make maven executable
+        run: chmod +x ./mvnw
+
+      - name: Run tests
+        run: ./mvnw test
+
+      - name: simulate deployement
+        run: echo "Deploying version $(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)..."
+      
+      - name: Build & push docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
+        with:
+          image: aicha36/demo-app
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
     
